@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>질문 이상형 월드컵</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+    background: #f5f4f0;
+    color: #1a1a18;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* Header */
+  .app-header {
+    text-align: center;
+    padding: 28px 20px 24px;
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid #e0ded8;
+    margin-bottom: 20px;
+  }
+  .app-badge {
+    display: inline-block;
+    background: #EEEDFE;
+    color: #3C3489;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+  }
+  .app-header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .app-header p { font-size: 13px; color: #6b6a64; }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp 0.22s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Cards */
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    border: 0.5px solid #e0ded8;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+
+  /* Section label */
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888780;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* Inputs */
+  input[type=text], textarea {
+    width: 100%;
+    border: 0.5px solid #ccc;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    color: #1a1a18;
+    outline: none;
+    resize: vertical;
+  }
+  input[type=text]:focus, textarea:focus {
+    border-color: #7F77DD;
+    box-shadow: 0 0 0 3px rgba(127,119,221,0.13);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 20px;
+    border-radius: 10px;
+    border: 0.5px solid #ccc;
+    background: transparent;
+    color: #1a1a18;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.13s, transform 0.08s;
+    font-weight: 500;
+  }
+  .btn:hover { background: #f5f4f0; }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: #534AB7; color: #fff; border-color: #534AB7; }
+  .btn.primary:hover { background: #3C3489; border-color: #3C3489; }
+  .btn.full { width: 100%; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn.sm { padding: 6px 12px; font-size: 12px; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .row input { flex: 1; }
+  .row-q { display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-start; }
+  .row-q textarea { flex: 1; min-height: 68px; }
+
+  /* Role cards */
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .role-card {
+    background: #fff;
+    border: 0.5px solid #e0ded8;
+    border-radius: 14px;
+    padding: 24px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.13s, transform 0.1s, box-shadow 0.13s;
+  }
+  .role-card:hover { border-color: #7F77DD; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(83,74,183,0.08); }
+  .role-card .icon { font-size: 32px; margin-bottom: 10px; }
+  .role-card .name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .role-card .desc { font-size: 12px; color: #888780; }
+
+  /* Nav */
+  .nav { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .nav-title { font-size: 17px; font-weight: 600; }
+  .back-btn { background: #fff; border: 0.5px solid #e0ded8; border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 16px; color: #1a1a18; }
+  .back-btn:hover { background: #f5f4f0; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; border-bottom: 0.5px solid #e0ded8; margin-bottom: 18px; }
+  .tab { padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; color: #888780; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; transition: color 0.13s; }
+  .tab.active { color: #534AB7; border-bottom-color: #534AB7; }
+
+  /* Topic display */
+  .topic-pill {
+    background: #EEEDFE;
+    color: #3C3489;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  /* Q items */
+  .q-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .q-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 0.5px solid #e0ded8;
+    border-radius: 10px;
+  }
+  .q-num {
+    font-size: 11px; font-weight: 600; color: #534AB7;
+    background: #EEEDFE; border-radius: 5px; padding: 2px 7px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .q-text { font-size: 14px; line-height: 1.55; flex: 1; }
+  .q-author { font-size: 11px; color: #888780; margin-top: 2px; }
+
+  /* Empty */
+  .empty { text-align: center; padding: 28px 16px; color: #888780; font-size: 14px; line-height: 1.6; }
+
+  /* Info box */
+  .info {
+    background: #f5f4f0;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 13px;
+    color: #6b6a64;
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+
+  /* URL section */
+  .url-wrap {
+    border: 0.5px solid #7F77DD;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .url-label-top {
+    padding: 8px 14px 5px;
+    font-size: 11px;
+    color: #534AB7;
+    font-weight: 600;
+    background: #EEEDFE;
+    letter-spacing: 0.03em;
+  }
+  .url-wrap input { border: none; border-radius: 0; }
+  .url-wrap input:focus { box-shadow: none; }
+
+  /* Sync badge */
+  .sync {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px;
+    margin-left: auto;
+  }
+  .sync.ok { background: #E1F5EE; color: #085041; }
+  .sync.err { background: #FCEBEB; color: #791F1F; }
+  .sync.wait { background: #f5f4f0; color: #888780; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* VS cards */
+  .vs-wrap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .vs-text { font-size: 18px; font-weight: 600; color: #b4b2a9; text-align: center; }
+  .q-card {
+    padding: 20px 14px;
+    background: #fff;
+    border: 0.5px solid #e0ded8;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color 0.13s, transform 0.1s, box-shadow 0.13s;
+    text-align: center;
+    min-height: 130px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  }
+  .q-card:hover { border-color: #7F77DD; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(83,74,183,0.09); }
+  .q-card .pick { font-size: 11px; color: #534AB7; font-weight: 600; background: #EEEDFE; padding: 3px 10px; border-radius: 20px; }
+  .q-card .ct { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .q-card .ca { font-size: 12px; color: #888780; }
+
+  /* Progress */
+  .round-badge {
+    display: inline-block; font-size: 12px; font-weight: 600; color: #3C3489;
+    background: #EEEDFE; padding: 4px 14px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .prog-bar { background: #e0ded8; border-radius: 100px; height: 5px; margin-bottom: 6px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #7F77DD; border-radius: 100px; transition: width 0.4s; }
+  .prog-text { font-size: 12px; color: #888780; text-align: right; margin-bottom: 16px; }
+
+  /* Winner */
+  .winner-card {
+    text-align: center; padding: 28px 20px;
+    background: #fff; border: 2px solid #7F77DD;
+    border-radius: 16px; margin-bottom: 14px;
+    animation: glow 2s ease-in-out infinite;
+  }
+  @keyframes glow { 0%,100%{box-shadow:0 0 0 0 rgba(127,119,221,0);}50%{box-shadow:0 0 0 10px rgba(127,119,221,0.1);} }
+  .winner-q { font-size: 18px; font-weight: 600; line-height: 1.5; color: #3C3489; margin-bottom: 8px; }
+  .winner-by { font-size: 13px; color: #888780; }
+
+  .finalist-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+  .finalist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #fff; border: 0.5px solid #e0ded8; border-radius: 10px; }
+  .finalist-rank { font-size: 11px; font-weight: 600; color: #534AB7; background: #EEEDFE; border-radius: 5px; padding: 2px 7px; flex-shrink: 0; }
+  .finalist-text { font-size: 13px; flex: 1; line-height: 1.5; }
+  .finalist-auth { font-size: 11px; color: #888780; }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1D9E75; color: #fff; padding: 11px 22px;
+    border-radius: 10px; font-size: 13px; font-weight: 500;
+    z-index: 999; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err { background: #E24B4A; }
+
+  /* Refresh spinner */
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="container">
+
+  <!-- 홈 화면 -->
+  <div id="s-home" class="screen active">
+    <div class="app-header">
+      <div class="app-badge">질문 이상형 월드컵</div>
+      <h1>최고의 질문을 뽑아라! 🏆</h1>
+      <p>학생들이 만든 질문으로 토너먼트 대결!</p>
+    </div>
+
+    <div class="card">
+      <div class="label" style="margin-bottom:8px;">구글 앱스크립트 연결</div>
+      <div class="url-wrap">
+        <div class="url-label-top">웹 앱 URL 입력</div>
+        <input type="text" id="gs-url" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <div id="url-msg" class="info" style="margin-bottom:0;">URL을 입력하고 역할을 선택하세요</div>
+    </div>
+
+    <div class="role-grid">
+      <div class="role-card" onclick="enterRole('teacher')">
+        <div class="icon">📋</div>
+        <div class="name">선생님</div>
+        <div class="desc">주제 설정 · 진행</div>
+      </div>
+      <div class="role-card" onclick="enterRole('student')">
+        <div class="icon">✏️</div>
+        <div class="name">학생</div>
+        <div class="desc">질문 작성 · 투표</div>
+      </div>
+    </div>
+
+    <div class="info">
+      ① 선생님이 학습 주제 입력 → 구글 시트에 자동 저장<br>
+      ② 학생들이 각자 질문 등록 → 실시간 시트 저장<br>
+      ③ 토너먼트로 최고의 질문 선정 → 우승 기록 저장
+    </div>
+  </div>
+
+  <!-- 선생님 화면 -->
+  <div id="s-teacher" class="screen">
+    <div class="nav">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <span class="nav-title">선생님 화면</span>
+      <span id="t-sync" class="sync wait"><span class="dot"></span>대기중</span>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tt0" onclick="tTab(0)">주제 설정</button>
+      <button class="tab" id="tt1" onclick="tTab(1)">질문 관리</button>
+      <button class="tab" id="tt2" onclick="tTab(2)">토너먼트</button>
+    </div>
+    <div id="tp0">
+      <div class="label" style="margin-bottom:8px;">오늘의 학습 주제</div>
+      <div class="row">
+        <input type="text" id="topic-inp" placeholder="예: 광합성 원리, 조선시대 신분제도..." />
+        <button class="btn primary" onclick="setTopic()">설정</button>
+      </div>
+      <div id="t-after" style="display:none;">
+        <div class="topic-pill" id="t-topic-show"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="label" style="margin:0;">등록된 질문</span>
+          <span id="t-cnt" style="font-size:12px;color:#888780;">0개</span>
+          <button class="btn sm" id="refresh-btn" onclick="fetchQs(true)" style="margin-left:auto;">↻ 새로고침</button>
+        </div>
+        <div id="t-qlist" class="q-list"><div class="empty">아직 질문이 없어요</div></div>
+        <button class="btn primary full" onclick="startTourney()">🏆 토너먼트 시작하기</button>
+      </div>
+    </div>
+    <div id="tp1" style="display:none;"></div>
+    <div id="tp2" style="display:none;"></div>
+  </div>
+
+  <!-- 학생 화면 -->
+  <div id="s-student" class="screen">
+    <div class="nav">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <span class="nav-title">학생 화면</span>
+      <span id="s-sync" class="sync wait"><span class="dot"></span>대기중</span>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="st0" onclick="sTab(0)">질문 작성</button>
+      <button class="tab" id="st1" onclick="sTab(1)">투표 현황</button>
+    </div>
+    <div id="sp0">
+      <div id="s-write-area"><div class="empty">선생님이 주제를 설정하면 시작할 수 있어요</div></div>
+    </div>
+    <div id="sp1" style="display:none;">
+      <div id="s-vote-area"><div class="empty">선생님이 토너먼트를 시작하면 여기서 볼 수 있어요</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let GSURL = '';
+let state = {
+  topic: '',
+  questions: [],
+  tourney: { active: false, winner: null, bracket: [], roundWinners: [], round: 1, idx: 0 }
+};
+let myQs = [];
+
+// ── URL & 연결 ──────────────────────────────────────────────
+document.getElementById('gs-url').addEventListener('change', function() {
+  GSURL = this.value.trim();
+});
+
+async function gsFetch(params) {
+  if (!GSURL) throw new Error('URL을 먼저 입력해 주세요');
+  const qs = Object.entries(params).map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&');
+  const res = await fetch(GSURL + '?' + qs);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || '서버 오류');
+  return data;
+}
+
+// ── 화면 전환 ───────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+}
+
+function goHome() { showScreen('home'); }
+
+function enterRole(role) {
+  GSURL = document.getElementById('gs-url').value.trim();
+  if (!GSURL) { toast('구글 앱스크립트 URL을 입력해 주세요', true); return; }
+  showScreen(role === 'teacher' ? 'teacher' : 'student');
+  setSyncBadge(role === 'teacher' ? 't-sync' : 's-sync', 'ok', '연결됨');
+  if (role === 'student') updateWriteArea();
+}
+
+function setSyncBadge(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = 'sync ' + type;
+  el.innerHTML = '<span class="dot"></span>' + text;
+}
+
+// ── 탭 전환 ─────────────────────────────────────────────────
+function tTab(i) {
+  [0,1,2].forEach(n => {
+    document.getElementById('tt'+n).classList.toggle('active', n===i);
+    document.getElementById('tp'+n).style.display = n===i ? 'block' : 'none';
+  });
+  if (i===1) renderManage();
+  if (i===2) renderTourney();
+}
+
+function sTab(i) {
+  [0,1].forEach(n => {
+    document.getElementById('st'+n).classList.toggle('active', n===i);
+    document.getElementById('sp'+n).style.display = n===i ? 'block' : 'none';
+  });
+  if (i===1) renderVote();
+}
+
+// ── 주제 설정 ───────────────────────────────────────────────
+async function setTopic() {
+  const v = document.getElementById('topic-inp').value.trim();
+  if (!v) { toast('주제를 입력해 주세요', true); return; }
+  state.topic = v;
+  try {
+    await gsFetch({ action: 'setTopic', topic: v });
+    toast('주제가 구글 시트에 저장되었어요!');
+  } catch(e) { toast('시트 생성 실패: ' + e.message, true); }
+  document.getElementById('t-topic-show').textContent = '📌 ' + v;
+  document.getElementById('t-after').style.display = 'block';
+  renderTeacherList();
+  updateWriteArea();
+}
+
+// ── 질문 목록 (선생님) ──────────────────────────────────────
+function renderTeacherList() {
+  document.getElementById('t-cnt').textContent = state.questions.length + '개';
+  const el = document.getElementById('t-qlist');
+  if (!state.questions.length) {
+    el.innerHTML = '<div class="empty">아직 질문이 없어요<br>학생들이 등록하면 새로고침을 눌러 주세요</div>';
+    return;
+  }
+  el.innerHTML = state.questions.map((q,i) => `
+    <div class="q-item">
+      <span class="q-num">Q${i+1}</span>
+      <div><div class="q-text">${esc(q.text)}</div><div class="q-author">${esc(q.author)}</div></div>
+    </div>`).join('');
+}
+
+async function fetchQs(showToast) {
+  if (!state.topic) return;
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.innerHTML = '<span class="spin">↻</span> 로딩중';
+  try {
+    const r = await gsFetch({ action: 'getQuestions', topic: state.topic });
+    state.questions = r.questions || [];
+    renderTeacherList();
+    if (showToast) toast('질문 ' + state.questions.length + '개를 불러왔어요');
+  } catch(e) { toast('불러오기 실패: ' + e.message, true); }
+  if (btn) btn.innerHTML = '↻ 새로고침';
+}
+
+function renderManage() {
+  const el = document.getElementById('tp1');
+  if (!state.topic) { el.innerHTML = '<div class="empty">먼저 주제를 설정해 주세요</div>'; return; }
+  el.innerHTML = `
+    <div class="topic-pill">📌 ${esc(state.topic)}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span class="label" style="margin:0;">전체 질문 ${state.questions.length}개</span>
+      <button class="btn sm" onclick="fetchQs(true).then(renderManage)" style="margin-left:auto;">↻ 새로고침</button>
+    </div>
+    <div class="q-list">${state.questions.length
+      ? state.questions.map((q,i)=>`
+        <div class="q-item">
+          <span class="q-num">Q${i+1}</span>
+          <div><div class="q-text">${esc(q.text)}</div><div class="q-author">${esc(q.author)}</div></div>
+        </div>`).join('')
+      : '<div class="empty">등록된 질문 없음</div>'}</div>`;
+}
+
+// ── 학생 질문 작성 ──────────────────────────────────────────
+function updateWriteArea() {
+  const el = document.getElementById('s-write-area');
+  if (!state.topic) { el.innerHTML = '<div class="empty">선생님이 주제를 설정하면 시작할 수 있어요</div>'; return; }
+  el.innerHTML = `
+    <div class="topic-pill">📌 ${esc(state.topic)}</div>
+    <div class="label" style="margin-bottom:8px;">내 이름</div>
+    <div class="row"><input type="text" id="s-name" placeholder="이름을 입력하세요" /></div>
+    <div class="label" style="margin-bottom:8px;">질문 작성</div>
+    <div class="row-q">
+      <textarea id="s-q" placeholder="이 주제에 대해 가장 궁금한 점, 핵심 질문을 써보세요..." rows="3"></textarea>
+      <button class="btn primary" id="s-submit" onclick="submitQ()">등록</button>
+    </div>
+    <div class="label" style="margin-bottom:8px;">내가 등록한 질문</div>
+    <div id="my-qlist" class="q-list"><div class="empty" style="padding:14px;">아직 등록한 질문이 없어요</div></div>`;
+  renderMyQs();
+}
+
+async function submitQ() {
+  const name = (document.getElementById('s-name') || {}).value?.trim();
+  const text = (document.getElementById('s-q') || {}).value?.trim();
+  if (!name) { toast('이름을 입력해 주세요', true); return; }
+  if (!text) { toast('질문을 입력해 주세요', true); return; }
+  const btn = document.getElementById('s-submit');
+  btn.disabled = true; btn.textContent = '저장 중...';
+  try {
+    const r = await gsFetch({ action: 'submitQuestion', topic: state.topic, author: name, text });
+    const q = { id: r.id, author: name, text };
+    myQs.push(q);
+    state.questions.push(q);
+    document.getElementById('s-q').value = '';
+    renderMyQs();
+    renderTeacherList();
+    toast('질문이 구글 시트에 저장되었어요!');
+  } catch(e) { toast('저장 실패: ' + e.message, true); }
+  btn.disabled = false; btn.textContent = '등록';
+}
+
+function renderMyQs() {
+  const el = document.getElementById('my-qlist');
+  if (!el) return;
+  if (!myQs.length) { el.innerHTML = '<div class="empty" style="padding:14px;">아직 등록한 질문이 없어요</div>'; return; }
+  el.innerHTML = myQs.map((q,i) => `
+    <div class="q-item">
+      <span class="q-num">Q${i+1}</span>
+      <div class="q-text">${esc(q.text)}</div>
+    </div>`).join('');
+}
+
+// ── 토너먼트 ────────────────────────────────────────────────
+function startTourney() {
+  if (state.questions.length < 2) { toast('질문이 최소 2개 이상 필요해요', true); return; }
+  const shuffled = [...state.questions].sort(() => Math.random() - 0.5);
+  state.tourney = { active: true, winner: null, bracket: shuffled, roundWinners: [], round: 1, idx: 0 };
+  tTab(2);
+}
+
+function renderTourney() {
+  const el = document.getElementById('tp2');
+  const t = state.tourney;
+  if (!t.active && !t.winner) { el.innerHTML = '<div class="empty">토너먼트를 시작하면 여기서 진행돼요</div>'; return; }
+  if (t.winner) { renderWinner(el); return; }
+  const total = Math.floor(t.bracket.length / 2);
+  const totalRounds = Math.max(1, Math.ceil(Math.log2(state.questions.length)));
+  const pct = Math.round(((t.round - 1) / totalRounds) * 100 + (t.idx / Math.max(1,total)) * (100 / totalRounds));
+  const left = t.bracket[t.idx * 2], right = t.bracket[t.idx * 2 + 1];
+  if (!left || !right) { advance(); renderTourney(); return; }
+  el.innerHTML = `
+    <div class="round-badge">${t.round}라운드 · ${t.idx + 1} / ${total} 대결</div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-text">${pct}% 완료</div>
+    <div class="vs-wrap">
+      <div class="q-card" onclick="pick(0)">
+        <span class="pick">이 질문 선택!</span>
+        <div class="ct">${esc(left.text)}</div>
+        <div class="ca">${esc(left.author)}</div>
+      </div>
+      <div class="vs-text">VS</div>
+      <div class="q-card" onclick="pick(1)">
+        <span class="pick">이 질문 선택!</span>
+        <div class="ct">${esc(right.text)}</div>
+        <div class="ca">${esc(right.author)}</div>
+      </div>
+    </div>
+    <div class="info">더 좋은 질문, 더 핵심을 찌르는 질문을 선택하세요!</div>`;
+}
+
+function pick(side) {
+  const t = state.tourney;
+  const w = side === 0 ? t.bracket[t.idx * 2] : t.bracket[t.idx * 2 + 1];
+  t.roundWinners.push(w);
+  t.idx++;
+  const pairs = Math.floor(t.bracket.length / 2);
+  if (t.idx >= pairs) {
+    if (t.bracket.length % 2 === 1) t.roundWinners.push(t.bracket[t.bracket.length - 1]);
+    if (t.roundWinners.length === 1) {
+      t.winner = t.roundWinners[0]; t.active = false;
+      saveWinner();
+    } else {
+      t.bracket = t.roundWinners; t.roundWinners = []; t.idx = 0; t.round++;
+    }
+  }
+  renderTourney();
+  renderVote();
+}
+
+function advance() {
+  const t = state.tourney;
+  if (t.roundWinners.length === 1) { t.winner = t.roundWinners[0]; t.active = false; saveWinner(); }
+  else if (t.roundWinners.length > 1) { t.bracket = t.roundWinners; t.roundWinners = []; t.idx = 0; t.round++; }
+}
+
+async function saveWinner() {
+  try {
+    const w = state.tourney.winner;
+    await gsFetch({ action: 'saveWinner', topic: state.topic, 'winner[text]': w.text, 'winner[author]': w.author });
+    toast('🏆 우승 질문이 구글 시트에 저장되었어요!');
+  } catch(e) { console.log('winner save err', e); }
+}
+
+function renderWinner(el) {
+  const w = state.tourney.winner;
+  const others = state.questions.filter(q => q.id !== w.id && q.text !== w.text);
+  el.innerHTML = `
+    <div class="winner-card">
+      <div style="font-size:44px;margin-bottom:12px;">🏆</div>
+      <div style="font-size:11px;color:#534AB7;font-weight:600;margin-bottom:8px;">최고의 질문!</div>
+      <div class="winner-q">${esc(w.text)}</div>
+      <div class="winner-by">by ${esc(w.author)}</div>
+    </div>
+    <div class="info">✅ 우승 질문이 구글 시트 '우승기록' 탭에 자동 저장되었어요</div>
+    ${others.length ? `
+    <div class="label" style="margin-bottom:8px;">참가한 모든 질문</div>
+    <div class="finalist-list">${others.map((q,i) => `
+      <div class="finalist-item">
+        <span class="finalist-rank">${i+1}</span>
+        <div><div class="finalist-text">${esc(q.text)}</div><div class="finalist-auth">${esc(q.author)}</div></div>
+      </div>`).join('')}</div>` : ''}
+    <div class="btn-row">
+      <button class="btn primary" onclick="resetAll()">↺ 다시 시작</button>
+    </div>`;
+}
+
+// ── 학생 투표 현황 ──────────────────────────────────────────
+function renderVote() {
+  const el = document.getElementById('s-vote-area');
+  if (!el) return;
+  const t = state.tourney;
+  if (!t.active && !t.winner) { el.innerHTML = '<div class="empty">선생님이 토너먼트를 시작하면 여기서 볼 수 있어요</div>'; return; }
+  if (t.winner) {
+    el.innerHTML = `
+      <div class="winner-card">
+        <div style="font-size:40px;margin-bottom:12px;">🏆</div>
+        <div style="font-size:11px;color:#534AB7;font-weight:600;margin-bottom:8px;">최고의 질문!</div>
+        <div class="winner-q">${esc(t.winner.text)}</div>
+        <div class="winner-by">by ${esc(t.winner.author)}</div>
+      </div>`;
+    return;
+  }
+  const left = t.bracket[t.idx * 2], right = t.bracket[t.idx * 2 + 1];
+  if (!left || !right) { el.innerHTML = '<div class="empty">다음 대결을 기다리는 중...</div>'; return; }
+  el.innerHTML = `
+    <div class="topic-pill">📌 ${esc(state.topic)}</div>
+    <div class="round-badge">${t.round}라운드 · ${t.idx + 1}번째 대결</div>
+    <div class="info">선생님 화면에서 투표 진행 중이에요! 어떤 질문이 이길지 예측해 보세요 👀</div>
+    <div class="vs-wrap">
+      <div class="q-card" style="cursor:default;min-height:110px;">
+        <div class="ct">${esc(left.text)}</div><div class="ca">${esc(left.author)}</div>
+      </div>
+      <div class="vs-text">VS</div>
+      <div class="q-card" style="cursor:default;min-height:110px;">
+        <div class="ct">${esc(right.text)}</div><div class="ca">${esc(right.author)}</div>
+      </div>
+    </div>`;
+}
+
+// ── 초기화 ──────────────────────────────────────────────────
+function resetAll() {
+  state = { topic: '', questions: [], tourney: { active: false, winner: null, bracket: [], roundWinners: [], round: 1, idx: 0 } };
+  myQs = [];
+  document.getElementById('topic-inp').value = '';
+  document.getElementById('t-after').style.display = 'none';
+  tTab(0);
+}
+
+// ── 유틸 ────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, isErr = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.className = '', 2800);
+}
+</script>
+</body>
+</html>
